@@ -2,3 +2,8 @@
 *.obj filter=lfs diff=lfs merge=lfs -text
 *.obj text !filter !merge !diff
 *.dae text !filter !merge !diff
+resources/robots/woodie/meshes/*.STL filter=lfs diff=lfs merge=lfs -text
+resources/robots/b2w/meshes/*.dae filter=lfs diff=lfs merge=lfs -text
+perlin_noise.txt filter=lfs diff=lfs merge=lfs -text
+resources/robots/woodie/meshes/base_link.STL filter=lfs diff=lfs merge=lfs -text
+resources/robots/b2w/meshes/trunk.dae filter=lfs diff=lfs merge=lfs -text

@@ -62,6 +62,7 @@ class BaseTask():
         self.num_privileged_obs = cfg.env.num_privileged_obs
         self.num_actions = cfg.env.num_actions
 
+        # 关闭PyTorch JIT（Just-In-Time）编译器的性能分析
         # optimization flags for pytorch JIT
         torch._C._jit_set_profiling_mode(False)
         torch._C._jit_set_profiling_executor(False)
@@ -135,7 +136,7 @@ class BaseTask():
                 self.gym.fetch_results(self.sim, True)
 
             # step graphics
-            if self.enable_viewer_sync:
+            if self.enable_viewer_sync:     # 同步渲染和仿真
                 self.gym.step_graphics(self.sim)
                 self.gym.draw_viewer(self.viewer, self.sim, True)
                 if sync_frame_time:

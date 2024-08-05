@@ -38,14 +38,31 @@ from .anymal_b.anymal_b_config import AnymalBRoughCfg, AnymalBRoughCfgPPO
 from .cassie.cassie import Cassie
 from .cassie.cassie_config import CassieRoughCfg, CassieRoughCfgPPO
 from .a1.a1_config import A1RoughCfg, A1RoughCfgPPO
-
-
-import os
-
+from .go2.go2_config import GO2RoughCfg, GO2RoughCfgPPO
+from .diablo.mixed_terrains.diablo import Diablo
+from .diablo.flat.diablo import DiabloMob
+from .diablo.flat.diablo_config import DiabloFlatCfg, DiabloFlatCfgPPO
+from .diablo.mixed_terrains.diablo_config import DiabloRoughCfg, DiabloRoughCfgPPO
+from .woodie.woodie import Woodie
+from .woodie.woodie_config import WoodieFlatCfg, WoodieFlatCfgPPO
+from .airbot.airbot_config import AirbotRoughCfg, AirbotRoughCfgPPO
+from .airbot.airbot_robot import Airbot
+from .b2w.b2w_config import B2wRoughCfg, B2wRoughCfgPPO
+from .b2w.b2w_robot import B2w
 from legged_gym.utils.task_registry import task_registry
+import os
+# import实例
 
 task_registry.register( "anymal_c_rough", Anymal, AnymalCRoughCfg(), AnymalCRoughCfgPPO() )
 task_registry.register( "anymal_c_flat", Anymal, AnymalCFlatCfg(), AnymalCFlatCfgPPO() )
 task_registry.register( "anymal_b", Anymal, AnymalBRoughCfg(), AnymalBRoughCfgPPO() )
 task_registry.register( "a1", LeggedRobot, A1RoughCfg(), A1RoughCfgPPO() )
 task_registry.register( "cassie", Cassie, CassieRoughCfg(), CassieRoughCfgPPO() )
+
+task_registry.register( "go2", LeggedRobot, GO2RoughCfg(), GO2RoughCfgPPO() )
+task_registry.register( "diablo_flat", DiabloMob, DiabloFlatCfg(), DiabloFlatCfgPPO() )
+task_registry.register( "diablo_rough", Diablo, DiabloRoughCfg(), DiabloRoughCfgPPO() )
+task_registry.register( "Woodie", Woodie, WoodieFlatCfg(), WoodieFlatCfgPPO() )
+
+task_registry.register( "b2w", B2w, B2wRoughCfg(), B2wRoughCfgPPO() )
+task_registry.register( "airbot", Airbot, AirbotRoughCfg(), AirbotRoughCfgPPO() )

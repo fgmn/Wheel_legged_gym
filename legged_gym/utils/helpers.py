@@ -37,6 +37,8 @@ from isaacgym import gymapi
 from isaacgym import gymutil
 
 from legged_gym import LEGGED_GYM_ROOT_DIR, LEGGED_GYM_ENVS_DIR
+import json
+import shutil
 
 def class_to_dict(obj) -> dict:
     if not  hasattr(obj,"__dict__"):
@@ -104,6 +106,7 @@ def get_load_path(root, load_run=-1, checkpoint=-1):
     try:
         runs = os.listdir(root)
         #TODO sort by date to handle change of month
+        # 按照字典序
         runs.sort()
         if 'exported' in runs: runs.remove('exported')
         last_run = os.path.join(root, runs[-1])
@@ -218,4 +221,23 @@ class PolicyExporterLSTM(torch.nn.Module):
         traced_script_module = torch.jit.script(self)
         traced_script_module.save(path)
 
+def save_config_to_json(config, log_path):
+    if not os.path.exists(log_path):
+        os.makedirs(log_path)
+        
+    config_dict = class_to_dict(config)
+    file_path = os.path.join(log_path, 'config.json')
+    with open(file_path, 'w') as json_file:
+        json.dump(config_dict, json_file, indent=4)
+
+def exponential_smoothing(data, alpha=0.2):
+    smoothed_data = []
+    for i, x in enumerate(data):
+        if i == 0:
+            smoothed_data.append(x)
+        else:
+            S_prev = smoothed_data[-1]
+            S = alpha * x + (1 - alpha) * S_prev
+            smoothed_data.append(S)
+    return smoothed_data
     

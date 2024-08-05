@@ -39,9 +39,19 @@ import torch
 
 def train(args):
     env, env_cfg = task_registry.make_env(name=args.task, args=args)
-    ppo_runner, train_cfg = task_registry.make_alg_runner(env=env, name=args.task, args=args)
+    ppo_runner, train_cfg = task_registry.make_alg_runner(env=env, name=args.task, args=args, env_cfg=env_cfg)
     ppo_runner.learn(num_learning_iterations=train_cfg.runner.max_iterations, init_at_random_ep_len=True)
 
 if __name__ == '__main__':
     args = get_args()
     train(args)
+
+
+
+# 未clip扭矩引起
+# ValueError: Expected parameter loc (Tensor of shape (24576, 8)) of distribution Normal(loc: torch.Size([24576, 8]), scale: torch.Size([24576, 8])) to satisfy the constraint Real(), but found invalid values:
+
+# png转视频命令
+# ffmpeg -framerate 24 -i %d.png -c:v libx264 -profile:v high -crf 18 -pix_fmt yuv420p terrains.mp4 -preset slow -s hd1080
+
+ 

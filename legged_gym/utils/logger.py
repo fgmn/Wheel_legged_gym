@@ -32,6 +32,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 from collections import defaultdict
 from multiprocessing import Process, Value
+from .helpers import exponential_smoothing
 
 class Logger:
     def __init__(self, dt):
@@ -59,8 +60,68 @@ class Logger:
         self.rew_log.clear()
 
     def plot_states(self):
-        self.plot_process = Process(target=self._plot)
+        self.plot_process = Process(target=self._plot_6)
         self.plot_process.start()
+
+    def _plot_1(self):
+        log= self.state_log
+        for key, value in self.state_log.items():
+            time = np.linspace(0, len(value)*self.dt, len(value))
+            break
+        plt.figure()
+        if log["knee_angle"]: plt.plot(time, log["knee_angle"], label='measured')
+        if log["command_knee_angle"]: plt.plot(time, log["command_knee_angle"], label='commanded')
+        plt.xlabel('time [s]')
+        plt.ylabel('knee ang [rad]')
+        plt.title('Knee angle')
+        plt.legend()
+        plt.show()
+
+    def _plot_6(self):
+        nb_rows = 3
+        nb_cols = 2
+        fig, axs = plt.subplots(nb_rows, nb_cols)
+        for key, value in self.state_log.items():
+            time = np.linspace(0, len(value)*self.dt, len(value))
+            break
+        log= self.state_log
+        f = exponential_smoothing
+        # plot joint targets and measured positions
+        a = axs[0, 0]
+        if log["dof_pos"]: a.plot(time, f(log["dof_pos"]), label='measured')
+        if log["dof_pos_target"]: a.plot(time, f(log["dof_pos_target"]), label='target')
+        a.set(ylabel='Position [rad]', title='(a) DOF Position')
+        a.legend()
+        # plot joint velocity
+        a = axs[0, 1]
+        if log["dof_vel"]: a.plot(time, f(log["dof_vel"]), label='measured')
+        if log["dof_vel_target"]: a.plot(time, f(log["dof_vel_target"]), label='target')
+        a.set(ylabel='Velocity [rad/s]', title='(b) Joint Velocity')
+        a.legend()
+        # plot base vel z
+        a = axs[1, 0]
+        if log["base_vel_z"]: a.plot(time, f(log["base_vel_z"]), label='measured')
+        a.set(ylabel='base lin vel [m/s]', title='(c) Base velocity z')
+        a.legend()
+        # plot contact forces
+        a = axs[1, 1]
+        if log["contact_forces_z"]:
+            forces = np.array(log["contact_forces_z"])
+            for i in range(forces.shape[1]):
+                a.plot(time, f(forces[:, i]), label=f'force {i}')
+        a.set(ylabel='Forces z [N]', title='(d) Vertical Contact forces')
+        a.legend()
+        # plot torque/vel curves
+        a = axs[2, 0]
+        if log["dof_vel"]!=[] and log["dof_torque"]!=[]: a.plot(log["dof_vel"], log["dof_torque"], 'x', label='measured')
+        a.set(xlabel='Joint vel [rad/s]', ylabel='Joint Torque [Nm]', title='(e) Torque/velocity curves')
+        a.legend()
+        # plot torques
+        a = axs[2, 1]
+        if log["dof_torque"]!=[]: a.plot(time, f(log["dof_torque"]), label='measured')
+        a.set(xlabel='time [s]', ylabel='Joint Torque [Nm]', title='(f) Torque')
+        a.legend()
+        plt.show()
 
     def _plot(self):
         nb_rows = 3
@@ -90,14 +151,24 @@ class Logger:
         a.legend()
         # plot base vel y
         a = axs[0, 1]
-        if log["base_vel_y"]: a.plot(time, log["base_vel_y"], label='measured')
-        if log["command_y"]: a.plot(time, log["command_y"], label='commanded')
-        a.set(xlabel='time [s]', ylabel='base lin vel [m/s]', title='Base velocity y')
+        # if log["base_vel_y"]: a.plot(time, log["base_vel_y"], label='measured')
+        # if log["command_y"]: a.plot(time, log["command_y"], label='commanded')
+
+        # 轮足没有y轴方向速度，替换为base高度
+        # if log["base_height"]: a.plot(time, log["base_height"], label='measured')
+        # if log["command_base_height"]: a.plot(time, log["command_base_height"], label='commanded')
+        # a.set(xlabel='time [s]', ylabel='base height [m]', title='Base height')
+        
+        # a.set(xlabel='time [s]', ylabel='base lin vel [m/s]', title='Base velocity y')
+        if log["knee_angle"]: a.plot(time, log["knee_angle"], label='measured')
+        if log["command_knee_angle"]: a.plot(time, log["command_knee_angle"], label='commanded')
+        a.set(xlabel='time [s]', ylabel='knee ang [rad]', title='Knee angle')
         a.legend()
         # plot base vel yaw
         a = axs[0, 2]
         if log["base_vel_yaw"]: a.plot(time, log["base_vel_yaw"], label='measured')
         if log["command_yaw"]: a.plot(time, log["command_yaw"], label='commanded')
+        # 暂时记录膝盖弯曲角度
         a.set(xlabel='time [s]', ylabel='base ang vel [rad/s]', title='Base velocity yaw')
         a.legend()
         # plot base vel z

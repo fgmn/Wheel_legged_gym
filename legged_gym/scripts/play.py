@@ -40,6 +40,7 @@ import torch
 
 
 def play(args):
+    global SET_CAMERA_FOR_SPECIFIC_ROBOT
     env_cfg, train_cfg = task_registry.get_cfgs(name=args.task)
     # override some parameters for testing
     env_cfg.env.num_envs = min(env_cfg.env.num_envs, 50)
@@ -67,7 +68,7 @@ def play(args):
     logger = Logger(env.dt)
     robot_index = 0 # which robot is used for logging
     joint_index = 1 # which joint is used for logging
-    stop_state_log = 100 # number of steps before plotting states
+    stop_state_log = 2000 # number of steps before plotting states
     stop_rew_log = env.max_episode_length + 1 # number of steps before print average episode rewards
     camera_position = np.array(env_cfg.viewer.pos, dtype=np.float64)
     camera_vel = np.array([1., 1., 0.])
@@ -79,12 +80,19 @@ def play(args):
         obs, _, rews, dones, infos = env.step(actions.detach())
         if RECORD_FRAMES:
             if i % 2:
-                filename = os.path.join(LEGGED_GYM_ROOT_DIR, 'logs', train_cfg.runner.experiment_name, 'exported', 'frames', f"{img_idx}.png")
+                filename = os.path.join(LEGGED_GYM_ROOT_DIR, 'logs', train_cfg.runner.experiment_name, 'exported', 'frames', 'measure_points',f"{img_idx}.png")
                 env.gym.write_viewer_image_to_file(env.viewer, filename)
                 img_idx += 1 
         if MOVE_CAMERA:
             camera_position += camera_vel * env.dt
             env.set_camera(camera_position, camera_position + camera_direction)
+
+        if SET_CAMERA_FOR_SPECIFIC_ROBOT:
+            robot_pos = env.root_states[robot_index, 0:3].cpu().numpy()
+            # d = [5, 5, 3.5]
+            d = [2, 0, 1.5]
+            env.set_camera(robot_pos + d, robot_pos)
+            # SET_CAMERA_FOR_SPECIFIC_ROBOT = False
 
         if i < stop_state_log:
             logger.log_states(
@@ -100,7 +108,11 @@ def play(args):
                     'base_vel_y': env.base_lin_vel[robot_index, 1].item(),
                     'base_vel_z': env.base_lin_vel[robot_index, 2].item(),
                     'base_vel_yaw': env.base_ang_vel[robot_index, 2].item(),
-                    'contact_forces_z': env.contact_forces[robot_index, env.feet_indices, 2].cpu().numpy()
+                    'contact_forces_z': env.contact_forces[robot_index, env.feet_indices, 2].cpu().numpy(),
+                    'base_height': env.root_states[robot_index, 2].item(),
+                    # 'command_base_height': env.commands[robot_index, 4].item(),
+                    # 'knee_angle': env.theta_right[robot_index].item(),
+                    # 'command_knee_angle': env.commands[robot_index, 5].item(),
                 }
             )
         elif i==stop_state_log:
@@ -117,5 +129,6 @@ if __name__ == '__main__':
     EXPORT_POLICY = True
     RECORD_FRAMES = False
     MOVE_CAMERA = False
+    SET_CAMERA_FOR_SPECIFIC_ROBOT = False
     args = get_args()
     play(args)
